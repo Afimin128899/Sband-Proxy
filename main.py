@@ -16,7 +16,7 @@ def require_env(name: str) -> str:
     return value
 
 
-BOT_TOKEN = require_env("BOT_TOKEN")
+BOT_TOKEN = require_env("8571962927:AAG_KEcFhL5LhhoZYk-bAbBNQ8MFqWO6WP4")
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
