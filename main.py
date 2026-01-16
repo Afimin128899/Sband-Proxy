@@ -1,20 +1,105 @@
-from aiogram import Bot, Dispatcher, executor, types
+import asyncio
+import logging
+import os
 
-TOKEN = "8571962927:AAG_KEcFhL5LhhoZYk-bAbBNQ8MFqWO6WP4"
-BOT_USERNAME = "Sband_Proxy_bot"  # без @
+from aiogram import Bot, Dispatcher, types
+from aiogram.filters import CommandStart, Command
 
-# SOCKS5 прокси (твой)
+from flyerapi import Flyer
+from db import init_db, add_user, get_users
+
+logging.basicConfig(level=logging.INFO)
+
+# ================= ENV =================
+BOT_TOKEN = os.environ.get("8571962927:AAG_KEcFhL5LhhoZYk-bAbBNQ8MFqWO6WP4")
+FLYER_API_KEY = os.environ.get("FLYER_API_KEY")
+ADMIN_ID = int(os.environ.get("548858090"))
+
+# PostgreSQL
+DATABASE_URL = os.environ.get("postgresql://sband_proxy_user:DaMB2wnRNCfr6Ju3kk3S8GJ73Z4aRg9c@dpg-d5l9gg6r433s73f3di5g-a/sband_proxy")
+
+# ================= PROXY =================
 SOCKS_SERVER = "193.124.133.42"
 SOCKS_PORT = "58976"
 SOCKS_USER = "VxWwEWV95B"
 SOCKS_PASS = "ea2pSdiR8Y"
 
-bot = Bot(token=TOKEN)
-dp = Dispatcher(bot)
+# ================= INIT =================
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher()
+flyer = Flyer(FLYER_API_KEY)
+
+broadcast_mode = False
 
 
-@dp.message_handler(commands=["start"])
+@dp.message(CommandStart())
 async def start(message: types.Message):
+    await add_user(message.from_user.id)
+
+    await message.answer(
+        "👋 Привет!\n\n"
+        "Для доступа нужно выполнить задания / подписаться."
+    )
+
+
+@dp.message(Command("broadcast"))
+async def broadcast_start(message: types.Message):
+    global broadcast_mode
+
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    broadcast_mode = True
+    await message.answer(
+        "✉️ Отправь сообщение для рассылки всем пользователям\n"
+        "❌ /cancel — отмена"
+    )
+
+
+@dp.message(Command("cancel"))
+async def broadcast_cancel(message: types.Message):
+    global broadcast_mode
+
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    broadcast_mode = False
+    await message.answer("❌ Рассылка отменена")
+
+
+@dp.message()
+async def check(message: types.Message):
+    global broadcast_mode
+
+    # ===== РАССЫЛКА =====
+    if broadcast_mode and message.from_user.id == ADMIN_ID:
+        users = await get_users()
+        sent, failed = 0, 0
+
+        for uid in users:
+            try:
+                await message.copy_to(uid)
+                sent += 1
+            except:
+                failed += 1
+
+        broadcast_mode = False
+        await message.answer(
+            f"✅ Рассылка завершена\n"
+            f"📤 Отправлено: {sent}\n"
+            f"❌ Ошибок: {failed}"
+        )
+        return
+
+    # ===== ПРОВЕРКА FLYER =====
+    ok = await flyer.check(
+        user_id=message.from_user.id,
+        language_code=message.from_user.language_code,
+    )
+
+    if not ok:
+        return
+
     socks_link = (
         f"https://t.me/socks?"
         f"server={SOCKS_SERVER}"
@@ -23,44 +108,28 @@ async def start(message: types.Message):
         f"&pass={SOCKS_PASS}"
     )
 
-    share_text = (
-        "🚀 Telegram стал работать медленно?\n\n"
-        "Подключи прокси за 1 клик — работает сразу 👌\n\n"
-        f"👉 https://t.me/{BOT_USERNAME}"
-    )
-
-    keyboard = types.InlineKeyboardMarkup(row_width=1)
-    keyboard.add(
-        types.InlineKeyboardButton(
-            text="🔗 Подключить прокси",
-            url=socks_link
-        ),
-        types.InlineKeyboardButton(
-            text="👥 Поделиться с другом",
-            switch_inline_query=share_text
-        ),
-        types.InlineKeyboardButton(
-            text="❌ Как отключить",
-            callback_data="disable_proxy"
-        )
+    keyboard = types.InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                types.InlineKeyboardButton(
+                    text="🔗 Подключить прокси",
+                    url=socks_link
+                )
+            ]
+        ]
     )
 
     await message.answer(
-        "👋 Добро пожаловать!\n\n"
-        "Бот подключает SOCKS-прокси для Telegram.\n"
-        "Данные и сообщения не читаются.",
+        "✅ Доступ разрешён!\n\n"
+        "Нажми кнопку ниже, чтобы подключить прокси.",
         reply_markup=keyboard
     )
 
 
-@dp.callback_query_handler(lambda c: c.data == "disable_proxy")
-async def disable_proxy(callback: types.CallbackQuery):
-    await callback.answer()
-    await callback.message.answer(
-        "❌ Чтобы отключить прокси:\n\n"
-        "Настройки → Данные и память → Прокси → Отключить"
-    )
+async def main():
+    await init_db()
+    await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+    asyncio.run(main())
