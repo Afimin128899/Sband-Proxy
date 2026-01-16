@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 
 # ================= ENV =================
 BOT_TOKEN = os.environ.get("8571962927:AAG_KEcFhL5LhhoZYk-bAbBNQ8MFqWO6WP4")
-FLYER_API_KEY = os.environ.get("FLYER_API_KEY")
+FLYER_API_KEY = os.environ.get("FL-elIbdL-MdNFgT-ULQrCk-dqgkjb")
 ADMIN_ID = int(os.environ.get("548858090"))
 
 # PostgreSQL
