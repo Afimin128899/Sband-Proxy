@@ -11,12 +11,12 @@ from db import init_db, add_user, get_users
 logging.basicConfig(level=logging.INFO)
 
 # ================= ENV =================
-BOT_TOKEN = os.environ.get("8571962927:AAFaIJ6P8WvhAo4fgh58YPC8Ovj3-CGsCGk")
-FLYER_API_KEY = os.environ.get("FL-elIbdL-MdNFgT-ULQrCk-dqgkjb")
-ADMIN_ID = int(os.environ.get("548858090"))
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+FLYER_API_KEY = os.environ.get("FLYER_API_KEY")
+ADMIN_ID = int(os.environ.get("ADMIN_ID"))
 
 # PostgreSQL
-DATABASE_URL = os.environ.get("postgresql://sband_proxy_user:DaMB2wnRNCfr6Ju3kk3S8GJ73Z4aRg9c@dpg-d5l9gg6r433s73f3di5g-a/sband_proxy")
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
 # ================= PROXY =================
 SOCKS_SERVER = "193.124.133.42"
