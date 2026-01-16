@@ -1,7 +1,7 @@
 from aiogram import Bot, Dispatcher, executor, types
 
-TOKEN = "ВАШ_BOT_TOKEN"
-BOT_USERNAME = "IMYA_TVOEGO_BOTA"  # без @
+TOKEN = "8571962927:AAG_KEcFhL5LhhoZYk-bAbBNQ8MFqWO6WP4"
+BOT_USERNAME = "Sband_Proxy_bot"  # без @
 
 # SOCKS5 прокси (твой)
 SOCKS_SERVER = "193.124.133.42"
