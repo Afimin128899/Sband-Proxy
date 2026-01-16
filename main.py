@@ -29,7 +29,7 @@ SOCKS_PORT = "58976"
 SOCKS_USER = "VxWwEWV95B"
 SOCKS_PASS = "ea2pSdiR8Y"
 
-BOT_USERNAME = "IMYA_TVOEGO_BOTA"
+BOT_USERNAME = "Sband_Proxy_Bot"
 
 # ================= INIT =================
 bot = Bot(token=BOT_TOKEN)
